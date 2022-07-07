@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace RealWorldNew.DAL.Entities
 {
-    internal class Comment
+    public class Comment
     {
         public int Id { get; set; }
         public int UserId { get; set; }
