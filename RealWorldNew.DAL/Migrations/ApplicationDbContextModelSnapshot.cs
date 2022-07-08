@@ -151,6 +151,12 @@ namespace RealWorldNew.DAL.Migrations
                     b.Property<int>("AuthorId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("NumberOfLikes")
+                        .HasColumnType("int");
+
                     b.Property<string>("Text")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -190,6 +196,9 @@ namespace RealWorldNew.DAL.Migrations
 
                     b.Property<int?>("ArticleId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Text")
                         .IsRequired()

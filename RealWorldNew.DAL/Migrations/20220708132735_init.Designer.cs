@@ -12,7 +12,7 @@ using RealWorldNewAPI.Data;
 namespace RealWorldNew.DAL.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20220708120159_init")]
+    [Migration("20220708132735_init")]
     partial class init
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -153,6 +153,12 @@ namespace RealWorldNew.DAL.Migrations
                     b.Property<int>("AuthorId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("NumberOfLikes")
+                        .HasColumnType("int");
+
                     b.Property<string>("Text")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -192,6 +198,9 @@ namespace RealWorldNew.DAL.Migrations
 
                     b.Property<int?>("ArticleId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Text")
                         .IsRequired()

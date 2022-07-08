@@ -13,6 +13,8 @@ namespace RealWorldNew.DAL.Entities
         public string Title { get; set; }
         public string Topic { get; set; }
         public string Text { get; set; }
+        public int NumberOfLikes { get; set; }
+        public DateTime CreateDate { get; set; }
 
         public virtual User Author { get; set; }
         public virtual List<Tag> Tags { get; set; }

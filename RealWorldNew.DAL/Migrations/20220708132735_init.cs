@@ -101,6 +101,8 @@ namespace RealWorldNew.DAL.Migrations
                     Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Topic = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Text = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    NumberOfLikes = table.Column<int>(type: "int", nullable: false),
+                    CreateDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     AuthorId = table.Column<int>(type: "int", nullable: false),
                     UserId = table.Column<int>(type: "int", nullable: true),
                     UserId1 = table.Column<int>(type: "int", nullable: true)
@@ -242,6 +244,7 @@ namespace RealWorldNew.DAL.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     UserId = table.Column<int>(type: "int", nullable: false),
+                    CreateDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Text = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ArticleId = table.Column<int>(type: "int", nullable: true)
                 },
