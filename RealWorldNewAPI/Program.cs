@@ -5,23 +5,28 @@ using Common;
 using RealWorldNewAPI;
 using RealWorldNew.BAL;
 using RealWorldNewAPI.Controllers;
+using RealWorldNew.DAL.Entities;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddIdentity<User, Role>(options =>
+{
+    options.User.RequireUniqueEmail = true;
+}).AddEntityFrameworkStores<ApplicationDbContext>();
+
 builder.Services.AddDbContext<ApplicationDbContext>
-    (o => o.UseSqlServer(builder.Configuration.GetConnectionString("RealWorldDB")));
+    (o => o.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddDbContext<ApplicationDbContext>();
 
-//builder.Services.AddScoped<IRealWorldController, RealWorldController>();
 builder.Services.AddScoped<IRealWorldService, RealWorldService>();
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-    .AddEntityFrameworkStores<ApplicationDbContext>();
-builder.Services.AddRazorPages();
 builder.Services.AddSwaggerGen();
+builder.Services.AddRazorPages();
+
+builder.Services.AddControllers();
 
 var app = builder.Build();
 
@@ -33,7 +38,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(o =>
     {
         o.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
-        o.RoutePrefix = string.Empty;
+        o.RoutePrefix = "swagger";
     });
 }
 else
@@ -52,5 +57,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapRazorPages();
+
+app.MapControllers();
 
 app.Run();

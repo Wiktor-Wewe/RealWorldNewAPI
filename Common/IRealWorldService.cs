@@ -10,5 +10,6 @@ namespace Common
     public interface IRealWorldService
     {
         IEnumerable<User> GetAllUsers();
+        string AddUser(User user);
     }
 }

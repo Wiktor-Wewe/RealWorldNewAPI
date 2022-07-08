@@ -4,7 +4,7 @@ using RealWorldNew.DAL.Entities;
 
 namespace RealWorldNewAPI.Data
 {
-    public class ApplicationDbContext : IdentityDbContext
+    public class ApplicationDbContext : IdentityDbContext<User, Role, int>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -18,7 +18,7 @@ namespace RealWorldNewAPI.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            
+            //Articles
             modelBuilder.Entity<Article>()
                 .Property(a => a.Title)
                 .IsRequired();
@@ -28,27 +28,25 @@ namespace RealWorldNewAPI.Data
                 .IsRequired();
 
             modelBuilder.Entity<Article>()
-                .HasMany<Tag>(t => t.Tags)
+                .HasMany(t => t.Tags)
                 .WithMany(a => a.Articles);
 
-            modelBuilder.Entity<Article>()
-                .HasOne(a => a.Author);
 
-
+            //Comments
             modelBuilder.Entity<Comment>()
                 .Property(c => c.Text)
                 .IsRequired();
 
-
+            //Tags
             modelBuilder.Entity<Tag>()
                 .Property(t => t.Name)
                 .IsRequired();
 
             modelBuilder.Entity<Tag>()
-                .HasMany<Article>(a => a.Articles)
+                .HasMany(a => a.Articles)
                 .WithMany(t => t.Tags);
 
-
+            //Users
             modelBuilder.Entity<User>()
                 .Property(u => u.UserName)
                 .IsRequired()
@@ -61,6 +59,17 @@ namespace RealWorldNewAPI.Data
             modelBuilder.Entity<User>()
                 .HasMany(u => u.Articles)
                 .WithOne(u => u.Author);
+
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.FollowedUsers);
+
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.LikedArticles)
+                .WithOne();
+
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.FollowedArticles)
+                .WithOne();
 
             base.OnModelCreating(modelBuilder);
 
