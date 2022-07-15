@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RealWorldNew.DAL", "RealWor
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RealWorldNew.BAL", "RealWorldNew.BAL\RealWorldNew.BAL.csproj", "{1D7199A4-BAFA-4B0F-AD18-CE68D064947D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csproj", "{30E4CCB1-3FA3-4CF8-AE8D-0189D2DD769F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RealWorldNew.Common", "Common\RealWorldNew.Common.csproj", "{30E4CCB1-3FA3-4CF8-AE8D-0189D2DD769F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

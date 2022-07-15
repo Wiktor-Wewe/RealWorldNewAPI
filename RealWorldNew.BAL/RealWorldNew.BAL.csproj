@@ -7,7 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Common\Common.csproj" />
+    <PackageReference Include="MediaBrowser.Common" Version="4.7.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Common\RealWorldNew.Common.csproj" />
+    <ProjectReference Include="..\RealWorldNew.DAL\RealWorldNew.DAL.csproj" />
   </ItemGroup>
 
 </Project>

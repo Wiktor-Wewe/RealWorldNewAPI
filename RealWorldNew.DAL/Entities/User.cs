@@ -9,10 +9,10 @@ using System.Threading.Tasks;
 
 namespace RealWorldNew.DAL.Entities
 {
-    public class User : IdentityUser<int>
+    public class User : IdentityUser
     {
-        public string ShortBio { get; set; }
-        public string UrlProfile { get; set; }
+        public string? ShortBio { get; set; }
+        public string? UrlProfile { get; set; }
 
         public virtual List<User> FollowedUsers { get; set; }
         public virtual List<Article> Articles { get; set; }
