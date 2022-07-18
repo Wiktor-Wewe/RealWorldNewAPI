@@ -21,6 +21,9 @@ using RealWorldNew.Common;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+
 builder.Services.AddCors(option =>
 {
     option.AddPolicy("Front", builder =>

@@ -13,6 +13,8 @@ using AutoMapper;
 using Common;
 using RealWorldNew.DAL.Interfaces;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 
 namespace RealWorldNew.BAL.Services
 {
@@ -23,19 +25,55 @@ namespace RealWorldNew.BAL.Services
         private readonly IMapper _mapper;
         private readonly IPasswordHasher<User> _passwordHasher;
         private readonly UserManager<User> _userManager;
+        private readonly IPackingService _packingService;
+        private readonly ILogger _logger; 
 
 
         public UserService(AuthenticationSettings authenticationSettings, 
                            IUserRepositorie userRepositorie,
                            IMapper mapper,
                            IPasswordHasher<User> passwordHasher,
-                           UserManager<User> userManager)
+                           UserManager<User> userManager,
+                           IPackingService packingService,
+                           ILogger<UserService> logger)
         {
             _authenticationSettings = authenticationSettings;
             _userRepositorie = userRepositorie;
             _mapper = mapper;
             _passwordHasher = passwordHasher;
             _userManager = userManager;
+            _packingService = packingService;
+            _logger = logger;
+        }
+
+        public async Task<User> Register(RegisterUserPack userPack)
+        {
+            var userExists = await _userManager.FindByNameAsync(userPack.user.username);
+            if (userExists != null)
+            {
+                throw new BadHttpRequestException("Username already taken.");
+            }
+            var user = _packingService.UnpackRegisterUser(userPack);
+            var result = await _userManager.CreateAsync(user, userPack.user.password);
+            if (!result.Succeeded)
+            {
+                throw new BadHttpRequestException("Invalid username or password.");
+            }
+            return user;
+        }
+
+        public async Task<User> Login(LoginUserPack modelPack)
+        {
+            var user = await _userManager.FindByEmailAsync(modelPack.user.Email);
+            if (user != null && await _userManager.CheckPasswordAsync(user, modelPack.user.Password))
+            {
+                return user;
+            }
+            else
+            {
+                _logger.LogInformation("About page visited at {DT}", DateTime.UtcNow.ToLongTimeString());
+                throw new BadHttpRequestException("Invalid username or password.");
+            }
         }
 
         public string GetToken(User user)
@@ -62,17 +100,9 @@ namespace RealWorldNew.BAL.Services
             return tokenHandler.WriteToken(token).ToString();
         }
 
-        public async Task AddUser(RegisterUserDto userDto)
+        public async Task<UserResponseContainer> GetMyInfo(string Id)
         {
-            var user = _mapper.Map<User>(userDto);
-            var hashPassword = _passwordHasher.HashPassword(user, userDto.password);
-            user.PasswordHash = hashPassword;
-            await _userRepositorie.AddUser(user);
-        }
-
-        public async Task<UserResponseContainer> GetMyInfo(ClaimsPrincipal claims)
-        {
-            var user = await _userRepositorie.GetById(claims.Identity.Name);
+            var user = await _userRepositorie.GetById(Id);
             if(user == null) return null;
 
             var userResponse = new UserResponse()

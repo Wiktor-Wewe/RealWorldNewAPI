@@ -33,32 +33,21 @@ namespace RealWorldNewAPI.Controllers
         [HttpPost("users")]
         public async Task<IActionResult> Register([FromBody]RegisterUserPack userPack)
         {
-            var userExists = await _userManager.FindByNameAsync(userPack.user.username);
-            if(userExists != null) return StatusCode(StatusCodes.Status500InternalServerError);
-
-            var user = _packingService.UnpackRegisterUser(userPack);
-
-            var result = await _userManager.CreateAsync(user, userPack.user.password);
-            if (!result.Succeeded) return StatusCode(StatusCodes.Status500InternalServerError);
-
+            var user = await _userService.Register(userPack);
             return Ok(_packingService.PackUser(user, _userService.GetToken(user)));
         }
 
         [HttpPost("users/login")]
         public async Task<IActionResult> Login([FromBody]LoginUserPack modelPack)
         {
-            var user = await _userManager.FindByEmailAsync(modelPack.user.Email);
-
-            if (user != null && await _userManager.CheckPasswordAsync(user, modelPack.user.Password))
-                return Ok(_packingService.PackUser(user, _userService.GetToken(user)));
-
-            return Unauthorized();
+            var user = await _userService.Login(modelPack);
+            return Ok(_packingService.PackUser(user, _userService.GetToken(user)));
         }
 
         [HttpGet("user")]
         public async Task<IActionResult> GetMyInfo()
         {
-            var user = await _userService.GetMyInfo(User);
+            var user = await _userService.GetMyInfo(User.Identity.Name);
             if(user == null) return NotFound();
 
             string token = this.Request.Headers[HeaderNames.Authorization].ToString().Replace("Bearer ", "");
@@ -92,7 +81,6 @@ namespace RealWorldNewAPI.Controllers
         {
             var userToFollow = await _userManager.FindByNameAsync(username);
             var user = await _userManager.FindByIdAsync(User.Identity.Name);
-
             var userContainer = _userService.FollowUser(user, userToFollow);
             return Ok(userContainer);
         }
