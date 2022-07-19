@@ -1,6 +1,8 @@
 using AutoMapper;
+using Castle.Core.Logging;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using Moq;
 using RealWorldNew.BAL.Services;
 using RealWorldNew.Common;
@@ -191,9 +193,11 @@ namespace RealWorldNewAPI.Test
             Mock<UserManager<User>> userManager = GetMockUserManager();
             userManager.Setup(x => x.FindByEmailAsync(It.IsAny<string>())).ReturnsAsync(output);
             userManager.Setup(x => x.CheckPasswordAsync(It.IsAny<User>(), It.IsAny<string>())).ReturnsAsync(false);
-            //dodaæ loggera
 
-            var userService = new UserService(null, null, null, null, userManager.Object, null, null);
+            var logger = new Mock<ILogger<UserService>>();
+            var userService = new UserService(null, null, null, null, userManager.Object, null, logger.Object);
+
+            
 
             //Act
             var result = userService.Login(input);

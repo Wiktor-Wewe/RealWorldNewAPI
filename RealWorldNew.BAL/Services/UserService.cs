@@ -58,6 +58,7 @@ namespace RealWorldNew.BAL.Services
             if (!result.Succeeded)
             {
                 throw new BadHttpRequestException("Invalid username or password.");
+                _logger.LogInformation("About page visited at {DT}\nInvalid username or password.", DateTime.UtcNow.ToLongTimeString());
             }
             return user;
         }
@@ -71,7 +72,7 @@ namespace RealWorldNew.BAL.Services
             }
             else
             {
-                _logger.LogInformation("About page visited at {DT}", DateTime.UtcNow.ToLongTimeString());
+                _logger.LogInformation("About page visited at {DT}\nInvalid username or password.", DateTime.UtcNow.ToLongTimeString());
                 throw new BadHttpRequestException("Invalid username or password.");
             }
         }
@@ -103,7 +104,11 @@ namespace RealWorldNew.BAL.Services
         public async Task<UserResponseContainer> GetMyInfo(string Id)
         {
             var user = await _userRepositorie.GetById(Id);
-            if(user == null) return null;
+            if(user == null)
+            {
+                _logger.LogInformation("About page visited at {DT}\nCan not find active user in database.", DateTime.UtcNow.ToLongTimeString());
+                throw new BadHttpRequestException("Can not find active user in database.");
+            }
 
             var userResponse = new UserResponse()
             {
