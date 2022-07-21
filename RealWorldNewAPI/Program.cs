@@ -16,7 +16,6 @@ using System.Text;
 using Microsoft.OpenApi.Models;
 using RealWorldNew.BAL.Services;
 using RealWorldNew.DAL.Interfaces;
-using RealWorldNew.DAL.Repositories;
 using RealWorldNew.Common;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -128,7 +127,8 @@ IMapper mapper = mapperConfig.CreateMapper();
 builder.Services.AddSingleton<IMapper>(mapper);
 
 builder.Services.AddScoped<IPackingService, PackingService>();
-builder.Services.AddScoped<IUserRepositorie, UserRepositorie>();
+builder.Services.AddScoped<IFollowService, FollowService>();
+builder.Services.AddScoped<IArticleService, ArticleService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 

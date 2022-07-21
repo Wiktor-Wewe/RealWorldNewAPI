@@ -14,9 +14,9 @@ namespace RealWorldNew.DAL.Entities
         public string? ShortBio { get; set; }
         public string? UrlProfile { get; set; }
 
-        public virtual List<User> FollowedUsers { get; set; }
-        public virtual List<Article> Articles { get; set; }
-        public virtual List<Article> LikedArticles { get; set; }
-        public virtual List<Article> FollowedArticles { get; set; }
+        public virtual List<User> FollowedUsers { get; set; } = new List<User>();
+        public virtual List<Article> Articles { get; set; } = new List<Article>();
+        public virtual List<Article> LikedArticles { get; set; } = new List<Article>();
+        public virtual List<Article> FollowedArticles { get; set; } = new List<Article>();
     }
 }

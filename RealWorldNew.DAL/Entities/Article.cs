@@ -16,8 +16,8 @@ namespace RealWorldNew.DAL.Entities
         public int NumberOfLikes { get; set; }
         public DateTime CreateDate { get; set; }
 
-        public virtual User Author { get; set; }
-        public virtual List<Tag> Tags { get; set; }
-        public virtual List<Comment> Comments { get; set; }
+        public virtual User Author { get; set; } = new User();
+        public virtual List<Tag> Tags { get; set; } = new List<Tag>();
+        public virtual List<Comment> Comments { get; set; } = new List<Comment>();
     }
 }

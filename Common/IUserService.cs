@@ -15,8 +15,7 @@ namespace Common
         Task<User> Login(LoginUserPack modelPack);
         string GetToken(User user);
         Task<UserResponseContainer> GetMyInfo(string Id);
-        Task ChangeUser(User user, ChangeProfile settings);
-        Task<bool> IsFollowedUser(string id, string username);
-        Task<ProfileViewContainer> FollowUser(User user, User userToFollow);
+        Task UpdateUser(string id, ChangeProfile settings);
+        Task<ProfileViewContainer> LoadProfile(string username, string id);
     }
 }

@@ -16,10 +16,10 @@ using System.Text;
 namespace RealWorldNewAPI.Controllers
 {
     [Route("api")]
-    //[ApiController]
+    [ApiController]
     public class UserController : ControllerBase
     {
-        private IUserService _userService;
+        private readonly IUserService _userService;
         private readonly UserManager<User> _userManager;
         private readonly IPackingService _packingService; 
 
@@ -33,15 +33,30 @@ namespace RealWorldNewAPI.Controllers
         [HttpPost("users")]
         public async Task<IActionResult> Register([FromBody]RegisterUserPack userPack)
         {
-            var user = await _userService.Register(userPack);
-            return Ok(_packingService.PackUser(user, _userService.GetToken(user)));
+            try
+            {
+                var user = await _userService.Register(userPack);
+                return Ok(_packingService.PackUser(user, _userService.GetToken(user)));
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+            
         }
 
         [HttpPost("users/login")]
         public async Task<IActionResult> Login([FromBody]LoginUserPack modelPack)
         {
-            var user = await _userService.Login(modelPack);
-            return Ok(_packingService.PackUser(user, _userService.GetToken(user)));
+            try
+            {
+                var user = await _userService.Login(modelPack);
+                return Ok(_packingService.PackUser(user, _userService.GetToken(user)));
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
         }
 
         [HttpGet("user")]
@@ -56,33 +71,32 @@ namespace RealWorldNewAPI.Controllers
         }
 
         [HttpGet("profiles/{userName}")]
-        public async Task<IActionResult> LoadProfile([FromRoute]string userName)
+        public async Task<IActionResult> LoadProfile([FromRoute]string username)
         {
-            var user = await _userManager.FindByNameAsync(userName);
-            if (user == null) return NotFound();
-            
-            var isFollowed = await _userService.IsFollowedUser(User.Identity.Name, userName);
-            ProfileView packProfile = _packingService.PackUserToProfileView(user, isFollowed);
-
-            return Ok(_packingService.PackProfileView(packProfile));
+            try
+            {
+                var result = await _userService.LoadProfile(username, User.Identity.Name);
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
         }
 
         [HttpPut("user")]
         public async Task<IActionResult> UpdatePrfile([FromBody]ChangeProfileContainer newProfileSettings)
         {
-            var user = await _userManager.FindByIdAsync(User.Identity.Name);
-            if (user == null) return NotFound();
-            await _userService.ChangeUser(user, newProfileSettings.user);
-            return Ok(newProfileSettings);
+            try
+            {
+                await _userService.UpdateUser(User.Identity.Name, newProfileSettings.user);
+                return Ok(newProfileSettings);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
         }
 
-        [HttpPost("profiles/{username}/follow")]
-        public async Task<IActionResult> FollowUser([FromRoute]string username)
-        {
-            var userToFollow = await _userManager.FindByNameAsync(username);
-            var user = await _userManager.FindByIdAsync(User.Identity.Name);
-            var userContainer = _userService.FollowUser(user, userToFollow);
-            return Ok(userContainer);
-        }
     }
 }

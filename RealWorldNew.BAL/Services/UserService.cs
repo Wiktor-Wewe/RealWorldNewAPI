@@ -7,7 +7,6 @@ using System.Text;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
-using RealWorldNew.DAL.Repositories;
 using RealWorldNew.Common.DtoModels;
 using AutoMapper;
 using Common;
@@ -15,14 +14,14 @@ using RealWorldNew.DAL.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using RealWorldNew.Common.Exceptions;
 
 namespace RealWorldNew.BAL.Services
 {
     public class UserService : IUserService
     {
+
         private readonly AuthenticationSettings _authenticationSettings;
-        private readonly IUserRepositorie _userRepositorie;
-        private readonly IMapper _mapper;
         private readonly IPasswordHasher<User> _passwordHasher;
         private readonly UserManager<User> _userManager;
         private readonly IPackingService _packingService;
@@ -30,16 +29,12 @@ namespace RealWorldNew.BAL.Services
 
 
         public UserService(AuthenticationSettings authenticationSettings, 
-                           IUserRepositorie userRepositorie,
-                           IMapper mapper,
                            IPasswordHasher<User> passwordHasher,
                            UserManager<User> userManager,
                            IPackingService packingService,
                            ILogger<UserService> logger)
         {
             _authenticationSettings = authenticationSettings;
-            _userRepositorie = userRepositorie;
-            _mapper = mapper;
             _passwordHasher = passwordHasher;
             _userManager = userManager;
             _packingService = packingService;
@@ -51,14 +46,16 @@ namespace RealWorldNew.BAL.Services
             var userExists = await _userManager.FindByNameAsync(userPack.user.username);
             if (userExists != null)
             {
-                throw new BadHttpRequestException("Username already taken.");
+                _logger.LogError("Trying to add existing user");
+                throw new UserException("Username already taken.");
             }
             var user = _packingService.UnpackRegisterUser(userPack);
             var result = await _userManager.CreateAsync(user, userPack.user.password);
             if (!result.Succeeded)
             {
-                throw new BadHttpRequestException("Invalid username or password.");
-                _logger.LogInformation("About page visited at {DT}\nInvalid username or password.", DateTime.UtcNow.ToLongTimeString());
+                var errors = result.Errors.Select(x => x.Description);
+                _logger.LogError(string.Join(" ", errors));
+                throw new UserException("Wrong input");
             }
             return user;
         }
@@ -66,20 +63,26 @@ namespace RealWorldNew.BAL.Services
         public async Task<User> Login(LoginUserPack modelPack)
         {
             var user = await _userManager.FindByEmailAsync(modelPack.user.Email);
-            if (user != null && await _userManager.CheckPasswordAsync(user, modelPack.user.Password))
+            var CheckPassword = await _userManager.CheckPasswordAsync(user, modelPack.user.Password);
+            if (user != null && CheckPassword)
             {
                 return user;
             }
             else
             {
-                _logger.LogInformation("About page visited at {DT}\nInvalid username or password.", DateTime.UtcNow.ToLongTimeString());
-                throw new BadHttpRequestException("Invalid username or password.");
+                _logger.LogError("Invalid username or password");
+                throw new UserException("Invalid username or password.");
             }
         }
 
         public string GetToken(User user)
         {
-            var userRoles = _userManager.GetRolesAsync(user);
+            if(user == null)
+            {
+                _logger.LogError("Can't generate token");
+                throw new UserException("Can't generate token");
+            }
+
             var claims = new List<Claim>()
             {
                 new Claim(ClaimTypes.Name, user.Id),
@@ -103,59 +106,72 @@ namespace RealWorldNew.BAL.Services
 
         public async Task<UserResponseContainer> GetMyInfo(string Id)
         {
-            var user = await _userRepositorie.GetById(Id);
+            var user = await _userManager.FindByIdAsync(Id);
             if(user == null)
             {
-                _logger.LogInformation("About page visited at {DT}\nCan not find active user in database.", DateTime.UtcNow.ToLongTimeString());
-                throw new BadHttpRequestException("Can not find active user in database.");
+                _logger.LogError("Can not find active user in database.");
+                throw new UserException("Can not find active user in database.");
             }
-
-            var userResponse = new UserResponse()
-            {
-                email = user.Email,
-                username = user.UserName,
-                bio = user.ShortBio,
-                image = user.UrlProfile,
-                token = "looooool"
-            };
 
             var userResponseContainer = new UserResponseContainer()
             {
-                user = userResponse
+                user = new UserResponse()
+                {
+                    email = user.Email,
+                    username = user.UserName,
+                    bio = user.ShortBio,
+                    image = user.UrlProfile,
+                    token = "looooool"
+                }
             };
 
             return userResponseContainer;
         }
 
-        public async Task ChangeUser(User user, ChangeProfile settings)
-        {
-            var hashPassword = _passwordHasher.HashPassword(user, settings.password);
-            await _userRepositorie.ChangeUser(user.Id, settings.username, settings.bio, settings.image, settings.email, hashPassword);
-        }
-
-        public async Task<bool> IsFollowedUser(string id, string username)
+        public async Task UpdateUser(string id, ChangeProfile settings)
         {
             var user = await _userManager.FindByIdAsync(id);
-            return await _userRepositorie.IsFollowedUser(user, username);
+            if(user == null)
+            {
+                _logger.LogError("No user found logged in.");
+                throw new UserException("No user found logged in.");
+            }
+
+            var hashPassword = _passwordHasher.HashPassword(user, settings.password);
+
+            user.UserName = settings.username;
+            user.UrlProfile = settings.image;
+            user.ShortBio = settings.bio;
+            user.Email = settings.email;
+            user.PasswordHash = hashPassword;
+
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+            {
+                _logger.LogError("Can't update user");
+                throw new UserException("Can't update user");
+            }
         }
 
-        public async Task<ProfileViewContainer> FollowUser(User user, User userToFollow)
+        public async Task<ProfileViewContainer> LoadProfile(string username, string id)
         {
-            await _userRepositorie.AddFollow(user, userToFollow);
-            var ProfileView = new ProfileView()
+            User user = await _userManager.FindByNameAsync(username);
+            
+            if(user == null)
             {
-                bio = userToFollow.ShortBio,
-                following = await IsFollowedUser(user.Id, userToFollow.UserName),
-                image = userToFollow.UrlProfile,
-                username = userToFollow.UserName
-            };
+                _logger.LogError($"Can not find user {username}");
+                throw new UserException($"Can not find user {username}");
+            }
 
-            var container = new ProfileViewContainer()
+            var activeUser = await _userManager.FindByIdAsync(id);
+            var isFollowed = false;
+            if(activeUser != null)
             {
-                profile = ProfileView
-            };
+                isFollowed = activeUser.FollowedUsers.Contains(user);
+            }
 
-            return container;
+            var packProfile = _packingService.PackUserToProfileView(user, isFollowed);
+            return _packingService.PackProfileView(packProfile);
         }
 
     }
