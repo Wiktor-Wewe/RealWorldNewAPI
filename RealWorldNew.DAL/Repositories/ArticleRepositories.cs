@@ -35,10 +35,19 @@ namespace RealWorldNew.DAL.Repositories
             return article;
         }
 
-        public async Task<List<Article>> GetNewArticles(string author, int limit) //add favorites
+        public async Task<List<Article>> GetNewArticles(string favorited, string author, int limit)
         {
             var articles = new List<Article>();
-            if (author != null)
+            if (favorited != null)
+            {
+                var user = await _dbContext.User
+                    .Include(u => u.LikedArticles)
+                    .FirstOrDefaultAsync(u => u.UserName == favorited);
+
+                var list = user.LikedArticles.ToList();
+                articles = list; //nie ma tu uzytklownikow
+            }
+            else if (author != null)
             {
                 articles = await _dbContext.Article
                     .Include(u => u.Author)

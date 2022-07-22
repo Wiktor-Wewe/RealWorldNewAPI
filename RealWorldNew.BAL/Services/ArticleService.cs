@@ -89,7 +89,7 @@ namespace RealWorldNew.BAL.Services
                         username = article.Author.UserName,
                         bio = article.Author.ShortBio,
                         image = article.Author.UrlProfile,
-                        following = user.FollowedArticles.Contains(article)
+                        following = user.FollowedUsers.Contains(article.Author)
                     }
                 },
             };
@@ -127,9 +127,9 @@ namespace RealWorldNew.BAL.Services
             return aup;
         }
 
-        public async Task<MultiArticleResponse> GetArticles(string author, int limit, int offset, string currentUserId)
+        public async Task<MultiArticleResponse> GetArticles(string favorited, string author, int limit, int offset, string currentUserId)
         {
-            var articles = await _articleRepositories.GetNewArticles(author, limit);
+            var articles = await _articleRepositories.GetNewArticles(favorited, author, limit);
 
             var pack = new MultiArticleResponse()
             {
