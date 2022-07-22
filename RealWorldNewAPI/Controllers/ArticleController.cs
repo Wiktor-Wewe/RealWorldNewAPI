@@ -15,9 +15,30 @@ namespace RealWorldNewAPI.Controllers
         }
 
         [HttpPost("articles")]
-        public async IActionResult AddArticle([FromBody] ArticleUpload pack)
+        public async Task<IActionResult> AddArticle([FromBody] ArticleUploadPack pack)
         {
-            var result = _articleService.AddArticle(User.Identity.Name, pack);
+            var result = await _articleService.AddArticle(User.Identity.Name, pack.article);
+            return Ok(result);
+        }
+
+        [HttpGet("articles/{title}-{id}")]
+        public async Task<IActionResult> GetArticle([FromRoute] string title, [FromRoute] int id)
+        {
+            var result = await _articleService.GetArticle(User.Identity.Name, title, id);
+            return Ok(result);
+        }
+
+        [HttpGet("articles")]
+        public async Task<IActionResult> GetArticles([FromQuery] string author, [FromQuery] int limit, [FromQuery] int offset)
+        {
+            var result = await _articleService.GetArticles(author, limit, offset, User.Identity.Name);
+            return Ok(result);
+        }
+
+        [HttpGet("articles/feed")]
+        public async Task<IActionResult> GetArticlesFeed([FromQuery] int limit, [FromQuery] int offset)
+        {
+            var result = await _articleService.GetArticlesFeed(limit, offset, User.Identity.Name);
             return Ok(result);
         }
     }

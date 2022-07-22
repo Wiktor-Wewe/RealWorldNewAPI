@@ -28,5 +28,19 @@ namespace RealWorldNewAPI.Controllers
             var response = await _followService.UnfollowUser(User.Identity.Name, username);
             return Ok(response);
         }
+
+        [HttpPost("articles/{title}-{id}/favorite")]
+        public async Task<IActionResult> AddArticleToFavorite([FromRoute] string title, [FromRoute] int id)
+        {
+            var response = await _followService.AddArticleToFavorite(title, id, User.Identity.Name);
+            return Ok(response);
+        }
+
+        [HttpDelete("articles/{title}-{id}/favorite")]
+        public async Task<IActionResult> RemoveArticleFromFavorite([FromRoute] string title, [FromRoute] int id)
+        {
+            var response = await _followService.RemoveArticleFromFavorite(title, id, User.Identity.Name);
+            return Ok(response);
+        }
     }
 }

@@ -17,6 +17,7 @@ using Microsoft.OpenApi.Models;
 using RealWorldNew.BAL.Services;
 using RealWorldNew.DAL.Interfaces;
 using RealWorldNew.Common;
+using RealWorldNew.DAL.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -89,7 +90,7 @@ builder.Services.AddSwaggerGen(swagger =>
     swagger.SwaggerDoc("v1", new OpenApiInfo
     {
         Version = "v1",
-        Title = "ASP.NET 5 Web API",
+        Title = "ASP.NET 6 Web API",
         Description = "Authentication and Authorization in ASP.NET 5 with JWT and Swagger"
     });  
     swagger.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
@@ -127,6 +128,8 @@ IMapper mapper = mapperConfig.CreateMapper();
 builder.Services.AddSingleton<IMapper>(mapper);
 
 builder.Services.AddScoped<IPackingService, PackingService>();
+builder.Services.AddScoped<IFollowRepositories, FollowRepositories>();
+builder.Services.AddScoped<IArticleRepositories, ArticleRepositories>();
 builder.Services.AddScoped<IFollowService, FollowService>();
 builder.Services.AddScoped<IArticleService, ArticleService>();
 builder.Services.AddScoped<IUserService, UserService>();

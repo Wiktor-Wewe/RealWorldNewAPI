@@ -10,14 +10,16 @@ namespace RealWorldNew.DAL.Entities
     public class Article
     {
         public int Id { get; set; }
+        public string Slug => $"{Title}-{Id}";
         public string Title { get; set; }
         public string Topic { get; set; }
         public string Text { get; set; }
         public int NumberOfLikes { get; set; }
         public DateTime CreateDate { get; set; }
+        public DateTime UpdateDate { get; set; }
 
-        public virtual User Author { get; set; } = new User();
-        public virtual List<Tag> Tags { get; set; } = new List<Tag>();
-        public virtual List<Comment> Comments { get; set; } = new List<Comment>();
+        public User Author { get; set; } = new User();
+        public List<Tag> Tags { get; set; } = new List<Tag>();
+        public List<Comment> Comments { get; set; } = new List<Comment>();
     }
 }

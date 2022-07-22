@@ -158,6 +158,7 @@ namespace RealWorldNew.DAL.Migrations
                     Text = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     NumberOfLikes = table.Column<int>(type: "int", nullable: false),
                     CreateDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdateDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     AuthorId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     UserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     UserId1 = table.Column<string>(type: "nvarchar(450)", nullable: true)
