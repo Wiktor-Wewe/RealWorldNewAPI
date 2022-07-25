@@ -12,7 +12,7 @@ namespace RealWorldNew.DAL.Interfaces
     {
         Task AddArticle(Article article);
         Task<Article> FindBySlugAsync(string title, int id);
-        Task<List<Article>> GetNewArticles(string favorited, string author, int limit);
+        Task<List<Article>> GetNewArticles(string tag, string favorited, string author, int limit);
         Task<List<Article>> GetNewArticleFeed(string currentUserId, int limit);
         Task DeleteArticleAsync(Article artice);
         Task EditArticleAsync(Article article);

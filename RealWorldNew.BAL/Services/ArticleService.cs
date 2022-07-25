@@ -40,7 +40,6 @@ namespace RealWorldNew.BAL.Services
 
             await _articleRepositories.AddArticle(article);
 
-            //adding articles to tags in tag.articles
             await _articleRepositories.AddArticlesToTags(article, tags);
 
             var resposne = new ArticleUploadResponse()
@@ -131,9 +130,9 @@ namespace RealWorldNew.BAL.Services
             return aup;
         }
 
-        public async Task<MultiArticleResponse> GetArticles(string favorited, string author, int limit, int offset, string currentUserId)
+        public async Task<MultiArticleResponse> GetArticles(string tag, string favorited, string author, int limit, int offset, string currentUserId)
         {
-            var articles = await _articleRepositories.GetNewArticles(favorited, author, limit);
+            var articles = await _articleRepositories.GetNewArticles(tag, favorited, author, limit);
 
             var pack = new MultiArticleResponse()
             {
