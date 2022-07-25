@@ -30,6 +30,7 @@ namespace RealWorldNew.DAL.Repositories
         {
             var article = await _dbContext.Article
                 .Include(u => u.Author)
+                .Include(u => u.Tags)
                 .FirstOrDefaultAsync(x => x.Id == id && x.Title == title);
 
             return article;
@@ -45,7 +46,21 @@ namespace RealWorldNew.DAL.Repositories
                     .FirstOrDefaultAsync(u => u.UserName == favorited);
 
                 var list = user.LikedArticles.ToList();
-                articles = list; //nie ma tu uzytklownikow
+
+                var allArticles = await _dbContext.Article.Include(u => u.Author).ToListAsync();
+
+                foreach(var article in allArticles)
+                {
+                    if (list.Contains(article))
+                    {
+                        articles.Add(article);
+                    }
+                    
+                    if(articles.Count >= limit)
+                    {
+                        break;
+                    }
+                }
             }
             else if (author != null)
             {
@@ -98,6 +113,69 @@ namespace RealWorldNew.DAL.Repositories
             }
 
             return articles;
+        }
+
+        public async Task DeleteArticleAsync(Article artice)
+        {
+            _dbContext.Article.Remove(artice);
+            await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task EditArticleAsync(Article article)
+        {
+            _dbContext.Article.Update(article);
+            await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task AddNewTag(string name)
+        {
+            var tag = new Tag()
+            {
+                Name = name
+            };
+
+            await _dbContext.Tag.AddAsync(tag);
+            await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task<List<Tag>> CheckTags(List<String> tagsNames)
+        {
+            var tagsInDb = await _dbContext.Tag.ToListAsync();
+
+            foreach(var tag in tagsNames)
+            {
+                if(tagsInDb.FirstOrDefault<Tag>(x => x.Name == tag) == null)
+                {
+                    await AddNewTag(tag);
+                }
+            }
+
+            var tagList = new List<Tag>();
+            Tag buff;
+
+            foreach(var tag in tagsNames)
+            {
+                buff = await _dbContext.Tag.FirstOrDefaultAsync(x => x.Name == tag);
+                tagList.Add(buff);
+            }
+
+            return tagList;
+        }
+
+        public async Task AddArticlesToTags(Article article, List<Tag> tags)
+        {
+            foreach(var tag in tags)
+            {
+                tag.Articles.Add(article);
+                _dbContext.Update(tag);
+            }
+            await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task<List<Tag>> GetPopularTags()
+        {
+            var Tags = await _dbContext.Tag.Include(u => u.Articles).OrderBy(u => u.Articles.Count).ToListAsync();
+            return Tags.Take(6).ToList();
         }
     }
 }

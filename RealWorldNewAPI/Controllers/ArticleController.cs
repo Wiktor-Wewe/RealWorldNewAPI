@@ -41,5 +41,26 @@ namespace RealWorldNewAPI.Controllers
             var result = await _articleService.GetArticlesFeed(limit, offset, User.Identity.Name);
             return Ok(result);
         }
+
+        [HttpDelete("articles/{title}-{id}")]
+        public async Task<IActionResult> DeleteArticle([FromRoute] string title, [FromRoute] int id)
+        {
+            await _articleService.DeleteArticleAsync(title, id);
+            return Ok();
+        }
+
+        [HttpPut("articles/{title}-{id}")]
+        public async Task<IActionResult> EditArticle([FromBody] ArticleUploadResponse pack, [FromRoute] string title, [FromRoute] int id)
+        {
+            var result = await _articleService.EditArticleAsync(pack, title, id);
+            return Ok(result);
+        }
+
+        [HttpGet("tags")]
+        public async Task<IActionResult> GetPopularTags()
+        {
+            var result = await _articleService.GetPopularTags();
+            return Ok(result);
+        }
     }
 }

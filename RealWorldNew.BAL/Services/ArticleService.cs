@@ -25,6 +25,7 @@ namespace RealWorldNew.BAL.Services
         public async Task<ArticleUploadResponse> AddArticle(string userId, ArticleUpload pack)
         {
             var user = await _userManager.FindByIdAsync(userId);
+            var tags = await _articleRepositories.CheckTags(pack.tagList);
 
             var article = new Article()
             {
@@ -34,10 +35,13 @@ namespace RealWorldNew.BAL.Services
                 Title = pack.title,
                 Topic = pack.description,
                 Text = pack.body,
-                //Tags = pack.tagList
+                Tags = tags
             };
 
             await _articleRepositories.AddArticle(article);
+
+            //adding articles to tags in tag.articles
+            await _articleRepositories.AddArticlesToTags(article, tags);
 
             var resposne = new ArticleUploadResponse()
             {
@@ -148,6 +152,39 @@ namespace RealWorldNew.BAL.Services
             {
                 articles = articleListToAUP(articles, currentUserId).Result,
                 articlesCount = limit
+            };
+
+            return pack;
+        }
+
+        public async Task DeleteArticleAsync(string title, int id)
+        {
+            var artice = await _articleRepositories.FindBySlugAsync(title, id);
+            await _articleRepositories.DeleteArticleAsync(artice);
+        }
+
+        public async Task<ArticleUploadResponse> EditArticleAsync(ArticleUploadResponse pack, string title, int id)
+        {
+            var article = await _articleRepositories.FindBySlugAsync(title, id);
+
+            article.Title = pack.article.title;
+            article.Topic = pack.article.description;
+            article.Text = pack.article.body;
+            //article.Tags = pack.tagList; //do poprawy
+
+            await _articleRepositories.EditArticleAsync(article);
+
+            pack.article.slug = $"{pack.article.title}-{id}";
+            return pack;
+        }
+
+        public async Task<PopularTags> GetPopularTags()
+        {
+            var tags = await _articleRepositories.GetPopularTags();
+
+            var pack = new PopularTags()
+            {
+                tags = tags.Select(u => u.Name).ToList()
             };
 
             return pack;

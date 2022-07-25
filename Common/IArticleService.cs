@@ -15,5 +15,8 @@ namespace RealWorldNew.Common
         Task<List<articleAUP>> articleListToAUP(List<Article> articles, string currentUserId);
         Task<MultiArticleResponse> GetArticles(string favorited, string author, int limit, int offset, string currentUserId);
         Task<MultiArticleResponse> GetArticlesFeed(int limit, int offset, string currentUserId);
+        Task DeleteArticleAsync(string title, int id);
+        Task<ArticleUploadResponse> EditArticleAsync(ArticleUploadResponse pack, string title, int id);
+        Task<PopularTags> GetPopularTags();
     }
 }
