@@ -128,8 +128,10 @@ IMapper mapper = mapperConfig.CreateMapper();
 builder.Services.AddSingleton<IMapper>(mapper);
 
 builder.Services.AddScoped<IPackingService, PackingService>();
+builder.Services.AddScoped<ICommentRepositories, CommentRepositories>();
 builder.Services.AddScoped<IFollowRepositories, FollowRepositories>();
 builder.Services.AddScoped<IArticleRepositories, ArticleRepositories>();
+builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IFollowService, FollowService>();
 builder.Services.AddScoped<IArticleService, ArticleService>();
 builder.Services.AddScoped<IUserService, UserService>();

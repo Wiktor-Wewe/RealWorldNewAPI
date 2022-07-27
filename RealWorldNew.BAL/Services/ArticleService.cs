@@ -40,8 +40,6 @@ namespace RealWorldNew.BAL.Services
 
             await _articleRepositories.AddArticle(article);
 
-            await _articleRepositories.AddArticlesToTags(article, tags);
-
             var resposne = new ArticleUploadResponse()
             {
                 article = new articleAUP()
@@ -132,12 +130,28 @@ namespace RealWorldNew.BAL.Services
 
         public async Task<MultiArticleResponse> GetArticles(string tag, string favorited, string author, int limit, int offset, string currentUserId)
         {
-            var articles = await _articleRepositories.GetNewArticles(tag, favorited, author, limit);
+            var articles = new List<Article>();
+            if (tag != null)
+            {
+                articles = await _articleRepositories.GetArticlesByTagAsync(tag, limit, offset);
+            }
+            else if (favorited != null)
+            {
+                articles = await _articleRepositories.GetArticlesByFavoritesAsync(favorited, limit, offset);
+            }
+            else if(author != null)
+            {
+                articles = await _articleRepositories.GetArticlesByAuthorAsync(author, limit, offset);
+            }
+            else
+            {
+                articles = await _articleRepositories.GetArticlesAsync(limit, offset);
+            }
 
             var pack = new MultiArticleResponse()
             {
                 articles = articleListToAUP(articles, currentUserId).Result,
-                articlesCount = limit,
+                articlesCount = await _articleRepositories.GetArticlesCount(), //do poprawy
             };
 
             return pack;
@@ -145,12 +159,12 @@ namespace RealWorldNew.BAL.Services
 
         public async Task<MultiArticleResponse> GetArticlesFeed(int limit, int offset, string currentUserId)
         {
-            var articles = await _articleRepositories.GetNewArticleFeed(currentUserId, limit);
+            var articles = await _articleRepositories.GetNewArticleFeed(currentUserId, limit, offset);
 
             var pack = new MultiArticleResponse()
             {
                 articles = articleListToAUP(articles, currentUserId).Result,
-                articlesCount = limit
+                articlesCount = await _articleRepositories.GetArticlesFeedCount(currentUserId)
             };
 
             return pack;
@@ -169,7 +183,7 @@ namespace RealWorldNew.BAL.Services
             article.Title = pack.article.title;
             article.Topic = pack.article.description;
             article.Text = pack.article.body;
-            //article.Tags = pack.tagList; //do poprawy
+            article.Tags = await _articleRepositories.CheckTags(pack.article.tagList);
 
             await _articleRepositories.EditArticleAsync(article);
 

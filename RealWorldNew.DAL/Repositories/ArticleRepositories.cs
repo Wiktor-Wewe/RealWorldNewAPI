@@ -36,70 +36,64 @@ namespace RealWorldNew.DAL.Repositories
             return article;
         }
 
-        public async Task<List<Article>> GetNewArticles(string tag, string favorited, string author, int limit)
+        public async Task<List<Article>> GetArticlesByTagAsync(string tag, int limit, int offset)
         {
-            var articles = new List<Article>();
-            if(tag != null)
-            {
-                var tagFromDb = await _dbContext.Tag
-                    .Include(u => u.Articles)
-                    .FirstOrDefaultAsync(u => u.Name == tag);
+            var articles = await _dbContext.Tag
+                .Include(u => u.Articles)
+                    .ThenInclude(u => u.Author)
+                .Where(u => u.Name == tag)
+                .SelectMany(u => u.Articles)
+                .OrderByDescending(u => u.CreateDate)
+                .Skip(offset)
+                .Take(limit)
+                .ToListAsync();     
 
-                articles = tagFromDb.Articles
-                    .OrderByDescending(u => u.CreateDate)
-                    .ToList();
+            return articles;
+        }
 
-            }
-            else if (favorited != null)
-            {
-                var user = await _dbContext.User
-                    .Include(u => u.LikedArticles)
-                    .FirstOrDefaultAsync(u => u.UserName == favorited);
+        public async Task<List<Article>> GetArticlesByFavoritesAsync(string favorited, int limit, int offset)
+        {
+            var articles = await _dbContext.Users
+                .Include(fu => fu.LikedArticles)
+                    .ThenInclude(fa => fa.Author)
+                .Where(x => x.UserName == favorited)
+                .SelectMany(u => u.LikedArticles)
+                .OrderByDescending(u => u.CreateDate)
+                .Skip(offset)
+                .Take(limit)
+                .ToListAsync();
 
-                var list = user.LikedArticles.ToList();
+            return articles;
+        }
 
-                var allArticles = await _dbContext.Article
-                    .Include(u => u.Author)
-                    .Include(u => u.Tags)
-                    .OrderByDescending(u => u.CreateDate)
-                    .ToListAsync();
-
-                foreach(var article in allArticles)
-                {
-                    if (list.Contains(article))
-                    {
-                        articles.Add(article);
-                    }
-                    
-                    if(articles.Count >= limit)
-                    {
-                        break;
-                    }
-                }
-            }
-            else if (author != null)
-            {
-                articles = await _dbContext.Article
+        public async Task<List<Article>> GetArticlesByAuthorAsync(string author, int limit, int offset)
+        {
+            var articles = await _dbContext.Article
                     .Include(u => u.Author)
                     .Include(u => u.Tags)
                     .Where(u => u.Author.UserName == author)
                     .OrderByDescending(u => u.CreateDate)
+                    .Skip(offset)
                     .Take(limit)
                     .ToListAsync();
-            }
-            else
-            {
-                articles = await _dbContext.Article
-                    .Include(u => u.Author)
-                    .Include(u => u.Tags)
-                    .OrderByDescending(u => u.CreateDate)
-                    .Take(limit)
-                    .ToListAsync();
-            }
+
             return articles;
         }
 
-        public async Task<List<Article>> GetNewArticleFeed(string currentUserId, int limit)
+        public async Task<List<Article>> GetArticlesAsync(int limit, int offset)
+        {
+            var articles = await _dbContext.Article
+                    .Include(u => u.Author)
+                    .Include(u => u.Tags)
+                    .OrderByDescending(u => u.CreateDate)
+                    .Skip(offset)
+                    .Take(limit)
+                    .ToListAsync();
+
+            return articles;
+        }
+
+        public async Task<List<Article>> GetNewArticleFeed(string currentUserId, int limit, int offset)
         {
 
             var result =
@@ -107,9 +101,10 @@ namespace RealWorldNew.DAL.Repositories
                 .Include(fu => fu.FollowedUsers)
                     .ThenInclude(fa => fa.Articles)
                         .ThenInclude(faa => faa.Author)
-                .Where(x=> x.Id == currentUserId)
+                .Where(x => x.Id == currentUserId)
                 .SelectMany(u => u.FollowedUsers.SelectMany(a => a.Articles))
                 .OrderByDescending(u => u.CreateDate)
+                .Skip(offset)
                 .Take(limit)
                 .ToListAsync();
 
@@ -143,9 +138,9 @@ namespace RealWorldNew.DAL.Repositories
         {
             var tagsInDb = await _dbContext.Tag.ToListAsync();
 
-            foreach(var tag in tagsNames)
+            foreach (var tag in tagsNames)
             {
-                if(tagsInDb.FirstOrDefault<Tag>(x => x.Name == tag) == null)
+                if (tagsInDb.FirstOrDefault<Tag>(x => x.Name == tag) == null)
                 {
                     await AddNewTag(tag);
                 }
@@ -154,7 +149,7 @@ namespace RealWorldNew.DAL.Repositories
             var tagList = new List<Tag>();
             Tag buff;
 
-            foreach(var tag in tagsNames)
+            foreach (var tag in tagsNames)
             {
                 buff = await _dbContext.Tag.FirstOrDefaultAsync(x => x.Name == tag);
                 tagList.Add(buff);
@@ -162,17 +157,7 @@ namespace RealWorldNew.DAL.Repositories
 
             return tagList;
         }
-
-        public async Task AddArticlesToTags(Article article, List<Tag> tags)
-        {
-            foreach(var tag in tags)
-            {
-                tag.Articles.Add(article);
-                _dbContext.Update(tag);
-            }
-            await _dbContext.SaveChangesAsync();
-        }
-
+        
         public async Task<List<Tag>> GetPopularTags()
         {
             var Tags = await _dbContext.Tag
@@ -182,5 +167,26 @@ namespace RealWorldNew.DAL.Repositories
 
             return Tags.Take(6).ToList();
         }
+
+        public async Task<int> GetArticlesCount()
+        {
+            return await _dbContext.Article.CountAsync();
+        }
+
+        public async Task<int> GetArticlesFeedCount(string currentUserId)
+        {
+            var result =
+                await _dbContext.Users
+                .Include(fu => fu.FollowedUsers)
+                    .ThenInclude(fa => fa.Articles)
+                .Where(x => x.Id == currentUserId)
+                .SelectMany(u => u.FollowedUsers.SelectMany(a => a.Articles))
+                .OrderByDescending(u => u.CreateDate)
+                .CountAsync();
+
+            return result;
+        }
+
     }
+    
 }
