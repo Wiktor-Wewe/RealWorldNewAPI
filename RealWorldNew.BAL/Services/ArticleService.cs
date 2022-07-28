@@ -25,7 +25,7 @@ namespace RealWorldNew.BAL.Services
         public async Task<ArticleUploadResponse> AddArticle(string userId, ArticleUpload pack)
         {
             var user = await _userManager.FindByIdAsync(userId);
-            var tags = await _articleRepositories.CheckTags(pack.tagList);
+            var tags = await CheckTagsAsync(pack.tagList);
 
             var article = new Article()
             {
@@ -99,12 +99,10 @@ namespace RealWorldNew.BAL.Services
 
         public async Task<List<articleAUP>> articleListToAUP(List<Article> articles, string currentUserId)
         {
-            var aup = new List<articleAUP>();
             var user = await _userManager.FindByIdAsync(currentUserId);
 
-            foreach (var article in articles)
-            {
-                aup.Add(new articleAUP()
+            return articles
+                .Select(article => new articleAUP()
                 {
                     slug = article.Slug,
                     title = article.Title,
@@ -113,45 +111,48 @@ namespace RealWorldNew.BAL.Services
                     tagList = article.Tags.Select(x => x.Name).ToList(),
                     createdAt = article.CreateDate,
                     updatedAt = article.UpdateDate,
-                    favorited = user.LikedArticles.Contains(article),
+                    favorited = user is null ? false : user.LikedArticles.Contains(article),
                     favoritesCount = article.NumberOfLikes,
                     author = new authorAUP()
                     {
                         username = article.Author.UserName,
                         bio = article.Author.ShortBio,
                         image = article.Author.UrlProfile,
-                        following = user.FollowedUsers.Contains(article.Author)
+                        following = user is null ? false : user.FollowedUsers.Contains(article.Author)
                     }
-                });
-            }
-
-            return aup;
+                })
+                .ToList();
         }
 
         public async Task<MultiArticleResponse> GetArticles(string tag, string favorited, string author, int limit, int offset, string currentUserId)
         {
             var articles = new List<Article>();
+            int count = 0;
             if (tag != null)
             {
                 articles = await _articleRepositories.GetArticlesByTagAsync(tag, limit, offset);
+                count = await _articleRepositories.GetArticlesCountByTagsAsync(tag);
             }
             else if (favorited != null)
             {
                 articles = await _articleRepositories.GetArticlesByFavoritesAsync(favorited, limit, offset);
+                count = await _articleRepositories.GetArticlesCountByFavoritesAsync(favorited);
             }
             else if(author != null)
             {
                 articles = await _articleRepositories.GetArticlesByAuthorAsync(author, limit, offset);
+                count = await _articleRepositories.GetArticlesCountByAuthorAsync(author);
             }
             else
             {
                 articles = await _articleRepositories.GetArticlesAsync(limit, offset);
+                count = await _articleRepositories.GetArticlesCount();
             }
 
             var pack = new MultiArticleResponse()
             {
-                articles = articleListToAUP(articles, currentUserId).Result,
-                articlesCount = await _articleRepositories.GetArticlesCount(), //do poprawy
+                articles = await articleListToAUP(articles, currentUserId),
+                articlesCount = count
             };
 
             return pack;
@@ -163,7 +164,7 @@ namespace RealWorldNew.BAL.Services
 
             var pack = new MultiArticleResponse()
             {
-                articles = articleListToAUP(articles, currentUserId).Result,
+                articles = await articleListToAUP(articles, currentUserId),
                 articlesCount = await _articleRepositories.GetArticlesFeedCount(currentUserId)
             };
 
@@ -183,7 +184,7 @@ namespace RealWorldNew.BAL.Services
             article.Title = pack.article.title;
             article.Topic = pack.article.description;
             article.Text = pack.article.body;
-            article.Tags = await _articleRepositories.CheckTags(pack.article.tagList);
+            article.Tags = await CheckTagsAsync(pack.article.tagList);
 
             await _articleRepositories.EditArticleAsync(article);
 
@@ -202,5 +203,29 @@ namespace RealWorldNew.BAL.Services
 
             return pack;
         }
+
+        public async Task<List<Tag>> CheckTagsAsync(List<string> tagsNames)
+        {
+            var tagsInDb = await _articleRepositories.GetAllTagsAsync();
+
+            foreach (var tag in tagsNames)
+            {
+                if (tagsInDb.FirstOrDefault<Tag>(x => x.Name == tag) == null)
+                {
+                    await _articleRepositories.AddNewTag(tag);
+                }
+            }
+
+            var tagList = new List<Tag>();
+            Tag buff;
+
+            foreach (var tag in tagsNames)
+            {
+                buff = await _articleRepositories.GetTagByNameAsync(tag);
+                tagList.Add(buff);
+            }
+
+            return tagList;
+        } 
     }
 }

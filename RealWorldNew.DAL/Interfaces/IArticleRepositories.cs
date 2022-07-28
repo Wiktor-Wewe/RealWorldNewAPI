@@ -20,9 +20,13 @@ namespace RealWorldNew.DAL.Interfaces
         Task DeleteArticleAsync(Article artice);
         Task EditArticleAsync(Article article);
         Task AddNewTag(string name);
-        Task<List<Tag>> CheckTags(List<String> tagsNames);
+        Task<List<Tag>> GetAllTagsAsync();
+        Task<Tag> GetTagByNameAsync(string name);
         Task<List<Tag>> GetPopularTags();
         Task<int> GetArticlesCount();
         Task<int> GetArticlesFeedCount(string currentUserId);
+        Task<int> GetArticlesCountByTagsAsync(string tag);
+        Task<int> GetArticlesCountByFavoritesAsync(string favorited);
+        Task<int> GetArticlesCountByAuthorAsync(string author);
     }
 }

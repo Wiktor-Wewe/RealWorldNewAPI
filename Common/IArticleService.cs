@@ -18,5 +18,6 @@ namespace RealWorldNew.Common
         Task DeleteArticleAsync(string title, int id);
         Task<ArticleUploadResponse> EditArticleAsync(ArticleUploadResponse pack, string title, int id);
         Task<PopularTags> GetPopularTags();
+        Task<List<Tag>> CheckTagsAsync(List<string> tagsNames);
     }
 }

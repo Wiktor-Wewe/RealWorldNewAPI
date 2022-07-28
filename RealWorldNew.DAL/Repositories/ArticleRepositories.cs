@@ -134,28 +134,14 @@ namespace RealWorldNew.DAL.Repositories
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task<List<Tag>> CheckTags(List<String> tagsNames)
+        public async Task<List<Tag>> GetAllTagsAsync()
         {
-            var tagsInDb = await _dbContext.Tag.ToListAsync();
+            return await _dbContext.Tag.ToListAsync();
+        }
 
-            foreach (var tag in tagsNames)
-            {
-                if (tagsInDb.FirstOrDefault<Tag>(x => x.Name == tag) == null)
-                {
-                    await AddNewTag(tag);
-                }
-            }
-
-            var tagList = new List<Tag>();
-            Tag buff;
-
-            foreach (var tag in tagsNames)
-            {
-                buff = await _dbContext.Tag.FirstOrDefaultAsync(x => x.Name == tag);
-                tagList.Add(buff);
-            }
-
-            return tagList;
+        public async Task<Tag> GetTagByNameAsync(string name)
+        {
+            return await _dbContext.Tag.FirstOrDefaultAsync(x => x.Name == name);
         }
         
         public async Task<List<Tag>> GetPopularTags()
@@ -185,6 +171,41 @@ namespace RealWorldNew.DAL.Repositories
                 .CountAsync();
 
             return result;
+        }
+
+        public async Task<int> GetArticlesCountByTagsAsync(string tag)
+        {
+            var articles = await _dbContext.Tag
+                .Include(u => u.Articles)
+                    .ThenInclude(u => u.Author)
+                .Where(u => u.Name == tag)
+                .SelectMany(u => u.Articles)
+                .CountAsync();
+
+            return articles;
+        }
+
+        public async Task<int> GetArticlesCountByFavoritesAsync(string favorited)
+        {
+            var articles = await _dbContext.Users
+                .Include(fu => fu.LikedArticles)
+                    .ThenInclude(fa => fa.Author)
+                .Where(x => x.UserName == favorited)
+                .SelectMany(u => u.LikedArticles)
+                .CountAsync();
+
+            return articles;
+        }
+
+        public async Task<int> GetArticlesCountByAuthorAsync(string author)
+        {
+            var articles = await _dbContext.Article
+                    .Include(u => u.Author)
+                    .Include(u => u.Tags)
+                    .Where(u => u.Author.UserName == author)
+                    .CountAsync();
+
+            return articles;
         }
 
     }
