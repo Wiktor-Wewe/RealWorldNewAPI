@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RealWorldNew.DAL\RealWorldNew.DAL.csproj" />
+    <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="6.0.6" />
   </ItemGroup>
 
 </Project>

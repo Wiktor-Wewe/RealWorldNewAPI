@@ -1,20 +1,14 @@
 ﻿using RealWorldNew.Common;
 using RealWorldNew.DAL.Entities;
-using RealWorldNewAPI.Data;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using System.Text;
-using System.IdentityModel.Tokens.Jwt;
-using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using RealWorldNew.Common.DtoModels;
-using AutoMapper;
 using Common;
-using RealWorldNew.DAL.Interfaces;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using RealWorldNew.Common.Exceptions;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace RealWorldNew.BAL.Services
 {

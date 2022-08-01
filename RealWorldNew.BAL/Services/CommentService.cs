@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using RealWorldNew.Common;
+using RealWorldNew.Common.Exceptions;
 using RealWorldNew.Common.Models;
 using RealWorldNew.DAL.Entities;
 using RealWorldNew.DAL.Interfaces;
@@ -15,16 +17,23 @@ namespace RealWorldNew.BAL.Services
     {
         private readonly ICommentRepositories _commentRepositories;
         private readonly UserManager<User> _userManager;
+        private readonly ILogger _logger;
 
-        public CommentService(ICommentRepositories commentRepositories, UserManager<User> userManager)
+        public CommentService(ICommentRepositories commentRepositories, UserManager<User> userManager, ILogger<CommentService> logger)
         {
             _commentRepositories = commentRepositories;
             _userManager = userManager;
+            _logger = logger;
         }
 
         public async Task<CommentPack> AddCommnetAsync(CommentPack pack, string CurrentUserId, string title, int id)
         {
             var author = await _userManager.FindByIdAsync(CurrentUserId);
+            if(author == null)
+            {
+                _logger.LogError("Can't find author of the comment");
+                throw new CommentException("Can't find author of the comment");
+            }
 
             pack.Comment.CreatedAt = DateTime.Now;
             pack.Comment.UpdatedAt = DateTime.Now;
@@ -43,7 +52,8 @@ namespace RealWorldNew.BAL.Services
                 CreateDate = pack.Comment.CreatedAt
             };
 
-            await _commentRepositories.AddCommentAsync(comment, title, id);
+            pack.Comment.Id = await _commentRepositories.AddCommentAsync(comment, title, id);
+
             return pack;
         }
 

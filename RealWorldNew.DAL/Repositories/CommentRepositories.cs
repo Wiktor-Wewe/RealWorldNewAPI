@@ -18,7 +18,7 @@ namespace RealWorldNew.DAL.Repositories
             _dbContext = dbContext;
         }
 
-        public async Task AddCommentAsync(Comment comment, string title, int id)
+        public async Task<int> AddCommentAsync(Comment comment, string title, int id)
         {
             var article = await _dbContext.Article
                 .FirstOrDefaultAsync(x => x.Title == title && x.Id == id);
@@ -27,6 +27,7 @@ namespace RealWorldNew.DAL.Repositories
             _dbContext.Article.Update(article);
 
             await _dbContext.SaveChangesAsync();
+            return comment.Id;
         }
 
         public async Task<List<Comment>> GetCommentsAsync(string title, int id)

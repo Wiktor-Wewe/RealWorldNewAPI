@@ -5,7 +5,7 @@ using RealWorldNew.Common.Models;
 namespace RealWorldNewAPI.Controllers
 {
     [Route("api")]
-    //[ApiController]
+    [ApiController]
     public class CommentController : Controller
     {
         private readonly ICommentService _commnetService;

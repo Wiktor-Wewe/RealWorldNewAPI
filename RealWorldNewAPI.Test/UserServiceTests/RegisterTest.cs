@@ -1,6 +1,3 @@
-using AutoMapper;
-using Castle.Core.Logging;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -9,9 +6,6 @@ using RealWorldNew.Common;
 using RealWorldNew.Common.DtoModels;
 using RealWorldNew.Common.Exceptions;
 using RealWorldNew.DAL.Entities;
-using RealWorldNew.DAL.Interfaces;
-using System.Security.Claims;
-using RealWorldNew.BAL.Services;
 
 namespace RealWorldNewAPI.Test.UserServiceTests
 {

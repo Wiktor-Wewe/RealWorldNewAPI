@@ -118,15 +118,6 @@ builder.Services.AddSwaggerGen(swagger =>
     });
 });
 
-
-var mapperConfig = new MapperConfiguration(mc =>
-{
-    mc.AddProfile(new LibraryMappingProfile());
-});
-
-IMapper mapper = mapperConfig.CreateMapper();
-builder.Services.AddSingleton<IMapper>(mapper);
-
 builder.Services.AddScoped<IPackingService, PackingService>();
 builder.Services.AddScoped<ICommentRepositories, CommentRepositories>();
 builder.Services.AddScoped<IFollowRepositories, FollowRepositories>();

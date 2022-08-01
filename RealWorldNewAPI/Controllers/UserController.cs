@@ -33,30 +33,15 @@ namespace RealWorldNewAPI.Controllers
         [HttpPost("users")]
         public async Task<IActionResult> Register([FromBody]RegisterUserPack userPack)
         {
-            try
-            {
-                var user = await _userService.Register(userPack);
-                return Ok(_packingService.PackUser(user, _userService.GetToken(user)));
-            }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
-            
+            var user = await _userService.Register(userPack);
+            return Ok(_packingService.PackUser(user, _userService.GetToken(user)));
         }
 
         [HttpPost("users/login")]
         public async Task<IActionResult> Login([FromBody]LoginUserPack modelPack)
         {
-            try
-            {
-                var user = await _userService.Login(modelPack);
-                return Ok(_packingService.PackUser(user, _userService.GetToken(user)));
-            }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
+            var user = await _userService.Login(modelPack);
+            return Ok(_packingService.PackUser(user, _userService.GetToken(user)));
         }
 
         [HttpGet("user")]
@@ -73,30 +58,15 @@ namespace RealWorldNewAPI.Controllers
         [HttpGet("profiles/{userName}")]
         public async Task<IActionResult> LoadProfile([FromRoute]string username)
         {
-            try
-            {
-                var result = await _userService.LoadProfile(username, User.Identity.Name);
-                return Ok(result);
-            }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
+            var result = await _userService.LoadProfile(username, User.Identity.Name);
+            return Ok(result);
         }
 
         [HttpPut("user")]
         public async Task<IActionResult> UpdatePrfile([FromBody]ChangeProfileContainer newProfileSettings)
         {
-            try
-            {
-                await _userService.UpdateUser(User.Identity.Name, newProfileSettings.user);
-                return Ok(newProfileSettings);
-            }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
+            await _userService.UpdateUser(User.Identity.Name, newProfileSettings.user);
+            return Ok(newProfileSettings);
         }
-
     }
 }

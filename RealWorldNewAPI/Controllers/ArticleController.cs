@@ -5,7 +5,7 @@ using RealWorldNew.Common.Models;
 namespace RealWorldNewAPI.Controllers
 {
     [Route("api")]
-    //[ApiController]
+    [ApiController]
     public class ArticleController : ControllerBase
     {
         private readonly IArticleService _articleService;
@@ -29,7 +29,7 @@ namespace RealWorldNewAPI.Controllers
         }
 
         [HttpGet("articles")]
-        public async Task<IActionResult> GetArticles([FromQuery] string tag, [FromQuery] string favorited, [FromQuery] string author, [FromQuery] int limit, [FromQuery] int offset)
+        public async Task<IActionResult> GetArticles([FromQuery] string? tag, [FromQuery] string? favorited, [FromQuery] string? author, [FromQuery] int limit, [FromQuery] int offset)
         {
             var result = await _articleService.GetArticles(tag, favorited, author, limit, offset, User.Identity.Name);
             return Ok(result);

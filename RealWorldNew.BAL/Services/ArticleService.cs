@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using RealWorldNew.Common;
+using RealWorldNew.Common.Exceptions;
 using RealWorldNew.Common.Models;
 using RealWorldNew.DAL.Entities;
 using RealWorldNew.DAL.Interfaces;
@@ -15,16 +17,24 @@ namespace RealWorldNew.BAL.Services
     {
         private readonly UserManager<User> _userManager;
         private readonly IArticleRepositories _articleRepositories;
+        private readonly ILogger _logger;
 
-        public ArticleService(UserManager<User> userManager, IArticleRepositories articleRepositories)
+        public ArticleService(UserManager<User> userManager, IArticleRepositories articleRepositories, ILogger<ArticleService> logger)
         {
             _userManager = userManager;
             _articleRepositories = articleRepositories;
+            _logger = logger;
         }
 
         public async Task<ArticleUploadResponse> AddArticle(string userId, ArticleUpload pack)
         {
             var user = await _userManager.FindByIdAsync(userId);
+            if(user == null)
+            {
+                _logger.LogError("Can't find user while adding article");
+                throw new ArticleException("Can't find user while adding article");
+            }
+
             var tags = await CheckTagsAsync(pack.tagList);
 
             var article = new Article()
@@ -70,6 +80,12 @@ namespace RealWorldNew.BAL.Services
         public async Task<ArticleUploadResponse> GetArticle(string currentUserId, string title, int id)
         {
             var article = await _articleRepositories.FindBySlugAsync(title, id);
+            if(article == null)
+            {
+                _logger.LogError("Can't find article");
+                throw new ArticleException("Can't find article");
+            }
+
             var user = await _userManager.FindByIdAsync(currentUserId);
 
             var pack = new ArticleUploadResponse()
@@ -83,14 +99,14 @@ namespace RealWorldNew.BAL.Services
                     tagList = article.Tags.Select(x => x.Name).ToList(),
                     createdAt = article.CreateDate,
                     updatedAt = article.UpdateDate,
-                    favorited = user.LikedArticles.Contains(article),
+                    favorited = user is null ? false : user.LikedArticles.Contains(article),
                     favoritesCount = article.NumberOfLikes,
                     author = new authorAUP()
                     {
                         username = article.Author.UserName,
                         bio = article.Author.ShortBio,
                         image = article.Author.UrlProfile,
-                        following = user.FollowedUsers.Contains(article.Author)
+                        following = user is null ? false : user.FollowedUsers.Contains(article.Author)
                     }
                 },
             };
@@ -174,12 +190,23 @@ namespace RealWorldNew.BAL.Services
         public async Task DeleteArticleAsync(string title, int id)
         {
             var artice = await _articleRepositories.FindBySlugAsync(title, id);
+            if(artice == null)
+            {
+                _logger.LogError("Can't find article while deleting");
+                throw new ArticleException("Can't find article while deleting");
+            }
+
             await _articleRepositories.DeleteArticleAsync(artice);
         }
 
         public async Task<ArticleUploadResponse> EditArticleAsync(ArticleUploadResponse pack, string title, int id)
         {
             var article = await _articleRepositories.FindBySlugAsync(title, id);
+            if(article == null)
+            {
+                _logger.LogError("Can't find article while editing");
+                throw new ArticleException("Can't find article while editing");
+            }
 
             article.Title = pack.article.title;
             article.Topic = pack.article.description;

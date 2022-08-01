@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using RealWorldNew.Common;
 using RealWorldNew.Common.DtoModels;
+using RealWorldNew.Common.Exceptions;
 using RealWorldNew.Common.Models;
 using RealWorldNew.DAL.Entities;
 using RealWorldNew.DAL.Interfaces;
@@ -16,11 +18,13 @@ namespace RealWorldNew.BAL.Services
     {
         private readonly UserManager<User> _userManager;
         private readonly IFollowRepositories _followRepositories;
+        private readonly ILogger _logger;
 
-        public FollowService(UserManager<User> userManager, IFollowRepositories followRepositories)
+        public FollowService(UserManager<User> userManager, IFollowRepositories followRepositories, ILogger<FollowService> logger)
         {
             _userManager = userManager;
             _followRepositories = followRepositories;
+            _logger = logger;
         }
 
         public async Task<ProfileViewContainer> FollowUser(string activeUserId, string usernameToFollow)
@@ -28,7 +32,8 @@ namespace RealWorldNew.BAL.Services
             var activeUser = await _userManager.FindByIdAsync(activeUserId);
             if (activeUser == null)
             {
-                //log and exception
+                _logger.LogError("Can't find active user");
+                throw new FollowException("Can't find active user");
             }
 
             var userToFollow = await _userManager.FindByNameAsync(usernameToFollow);
@@ -46,7 +51,8 @@ namespace RealWorldNew.BAL.Services
 
             if (activeUser.FollowedUsers.Contains(userToFollow))
             {
-                //log and exception
+                _logger.LogError("Active user already contain userToFollow");
+                throw new FollowException("Active user already contain userToFollow");
             }
             else
             {
@@ -63,7 +69,8 @@ namespace RealWorldNew.BAL.Services
             var activeUser = await _userManager.FindByIdAsync(activeUserId);
             if (activeUser == null)
             {
-                //log and exception
+                _logger.LogError("Can't find active user");
+                throw new FollowException("Can't find active user");
             }
 
             var userToFollow = await _userManager.FindByNameAsync(usernameToFollow);
@@ -86,7 +93,8 @@ namespace RealWorldNew.BAL.Services
             }
             else
             {
-                //log and exception
+                _logger.LogError("Active user not contains userToFollow");
+                throw new FollowException("Active user not contains userToFollow");
             }
 
             return response;
@@ -100,7 +108,11 @@ namespace RealWorldNew.BAL.Services
             user.LikedArticles.Add(article);
 
             var result = await _userManager.UpdateAsync(user);
-            //dodaj if result == fail itp
+            if (!result.Succeeded)
+            {
+                _logger.LogError("Can't add article to favorite");
+                throw new LikeException("Can't add article to favorite");
+            }
 
             var pack = new articleAUP()
             {
@@ -133,7 +145,11 @@ namespace RealWorldNew.BAL.Services
             user.LikedArticles.Remove(article);
 
             var result = await _userManager.UpdateAsync(user);
-            //dodaj if result == fail itp
+            if (!result.Succeeded)
+            {
+                _logger.LogError("Can't remove article form favorite");
+                throw new LikeException("Can't remove article from favorite");
+            }
 
             var pack = new articleAUP()
             {
