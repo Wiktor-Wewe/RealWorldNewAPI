@@ -65,7 +65,7 @@ public partial class Program
             };
         });
 
-        var inMemmoryDatabase = builder.Configuration.GetValue<bool>("InMemmryDatabase");
+        var inMemmoryDatabase = builder.Configuration.GetValue<bool>("InMemoryDatabase");
 
         if (inMemmoryDatabase)
         {
