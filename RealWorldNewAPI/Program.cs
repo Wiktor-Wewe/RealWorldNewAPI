@@ -65,11 +65,18 @@ public partial class Program
             };
         });
 
+        var inMemmoryDatabase = builder.Configuration.GetValue<bool>("InMemmryDatabase");
 
-        builder.Services.AddDbContext<ApplicationDbContext>
+        if (inMemmoryDatabase)
+        {
+            builder.Services.AddDbContext<ApplicationDbContext>
+            (o => o.UseInMemoryDatabase("asd"));
+        }
+        else
+        {
+            builder.Services.AddDbContext<ApplicationDbContext>
             (o => o.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-        builder.Services.AddDbContext<ApplicationDbContext>();
-
+        }
 
 
         var identityServer = builder.Services
