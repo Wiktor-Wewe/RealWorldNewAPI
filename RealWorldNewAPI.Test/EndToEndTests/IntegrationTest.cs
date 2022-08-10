@@ -28,8 +28,35 @@ namespace RealWorldNewAPI.Test.EndToEndTests
                 {
                     builder.ConfigureServices(services =>
                     {
-                        services.RemoveAll(typeof(ApplicationDbContext));
-                        services.AddDbContext<ApplicationDbContext>(options => { options.UseInMemoryDatabase("TestDb"); });
+                        var dbContext = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
+
+                        if (dbContext != null)
+                        {
+                            services.Remove(dbContext);
+                        }
+                        var serviceProvider = new ServiceCollection().AddEntityFrameworkInMemoryDatabase().BuildServiceProvider();
+
+                        services.AddDbContext<ApplicationDbContext>(options =>
+                        {
+                            options.UseInMemoryDatabase("InMemoryEmployeeTest");
+                            options.UseInternalServiceProvider(serviceProvider);
+                        });
+                        var sp = services.BuildServiceProvider();
+
+                        using (var scope = sp.CreateScope())
+                        {
+                            using (var appContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>())
+                            {
+                                try
+                                {
+                                    appContext.Database.EnsureCreated();
+                                }
+                                catch (Exception ex)
+                                {
+                                    throw;
+                                }
+                            }
+                        }
                     });
                 });
             TestClient = appFactor.CreateClient();

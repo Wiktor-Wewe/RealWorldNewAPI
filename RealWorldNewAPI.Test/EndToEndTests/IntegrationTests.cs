@@ -30,7 +30,7 @@ namespace RealWorldNewAPI.Test.EndToEndTests
         public async Task AddArticles_AfterLoginAddSomeArticle_ReturnArticleUploadResponse()
         {
             //Arrange
-            await Login();
+            await Register();
 
             //Act
             var response = await TestClient.PostAsync("api/articles", new StringContent(
@@ -62,7 +62,7 @@ namespace RealWorldNewAPI.Test.EndToEndTests
         public async Task GetArticles_AfterLoginGetGlobal_ReturnMultiArticleResponse()
         {
             //Arrange
-            await Login();
+            await Register();
 
             //Act
             var response = await TestClient.GetAsync("api/articles?limit=10&offset=0");
@@ -71,11 +71,22 @@ namespace RealWorldNewAPI.Test.EndToEndTests
             //Assert
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             content.articles.Should().BeOfType(typeof(List<articleAUP>));
-            content.articlesCount.Should().BeGreaterThan(0);
         }
 
-        //[Test]
-        //public async Task 
+        [Test]
+        public async Task GetArticles_GetMyArticles_ReturnMultiArticleResponse()
+        {
+            //Arrange
+            await Register();
+
+            //Act
+            var response = await TestClient.GetAsync("api/articles?author=test&limit=5&offset=0");
+            var content = await response.Content.ReadAsAsync<MultiArticleResponse>();
+
+            //Assert
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            content.articles.Should().BeOfType(typeof(List<articleAUP>));
+        }
 
 
     }
