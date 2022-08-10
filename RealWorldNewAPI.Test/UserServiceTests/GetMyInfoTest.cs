@@ -49,7 +49,7 @@ namespace RealWorldNewAPI.Test.UserServiceTests
         }
 
         [Test]
-        public async Task GetMyInfo_UserNotFound_ThrowUserException()
+        public async Task GetMyInfo_UserNotFound_ReturnNull()
         {
             //Arrange
             string input = "someid";
@@ -61,8 +61,11 @@ namespace RealWorldNewAPI.Test.UserServiceTests
 
             var userService = new UserService(null, null, userManager.Object, null, logger.Object);
 
+            //Act 
+            var response = await userService.GetMyInfo(input);
+
             //Arrange and Act
-            Assert.ThrowsAsync(Is.TypeOf<UserException>().And.Message.EqualTo("Can not find active user in database."), async delegate { await userService.GetMyInfo(input); });
+            Assert.IsNull(response);
         }
     }
 }
