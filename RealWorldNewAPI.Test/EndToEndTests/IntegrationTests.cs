@@ -51,9 +51,11 @@ namespace RealWorldNewAPI.Test.EndToEndTests
                 "application/json")
                 );
 
+            var content = await response.Content.ReadAsAsync<ArticleUploadResponse>();
+
             //Assert
             response.StatusCode.Should().Be(HttpStatusCode.OK);
-            (response.Content.ReadAsAsync<ArticleUploadResponse>().Result).Should().BeOfType(typeof(ArticleUploadResponse));
+            content.article.Should().BeOfType(typeof(articleAUP));
         }
 
         [Test]
@@ -63,13 +65,18 @@ namespace RealWorldNewAPI.Test.EndToEndTests
             await Login();
 
             //Act
-            var response = await TestClient.GetAsync("api/articles");
-            var asd = await response.Content.ReadAsAsync<MultiArticleResponse>();
+            var response = await TestClient.GetAsync("api/articles?limit=10&offset=0");
+            var content = await response.Content.ReadAsAsync<MultiArticleResponse>();
 
             //Assert
             response.StatusCode.Should().Be(HttpStatusCode.OK);
-            //(await response.Content.ReadAsAsync<MultiArticleResponse>()).Should().BeOfType(typeof(MultiArticleResponse));
-            //(await response.Content.ReadAsAsync<MultiArticleResponse>()).articlesCount.Should().Be(39);
+            content.articles.Should().BeOfType(typeof(List<articleAUP>));
+            content.articlesCount.Should().BeGreaterThan(0);
         }
+
+        //[Test]
+        //public async Task 
+
+
     }
 }

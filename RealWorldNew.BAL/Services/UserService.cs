@@ -104,7 +104,8 @@ namespace RealWorldNew.BAL.Services
             if(user == null)
             {
                 _logger.LogError("Can not find active user in database.");
-                throw new UserException("Can not find active user in database.");
+                //throw new UserException("Can not find active user in database.");
+                return null;
             }
 
             var userResponseContainer = new UserResponseContainer()
